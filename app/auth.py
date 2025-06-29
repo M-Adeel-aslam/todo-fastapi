@@ -1,0 +1,38 @@
+from jose import JWTError, jwt
+from fastapi.security import OAuth2PasswordBearer
+from datetime import datetime, timedelta
+from app.database import get_db
+from app import models
+from sqlalchemy.orm import Session
+import os
+from fastapi import Depends, HTTPException, status
+OAuthScheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+KEY = os.getenv("SECRET_KEY")
+EXPIRE_TOKEN_TIME=30
+ALGORITHM = "HS256"
+
+def create_access_token(data: dict):
+    encode_data = data.copy()
+    expiry = datetime.utcnow() + timedelta(minutes=EXPIRE_TOKEN_TIME)
+    encode_data.update({"exp": expiry})
+    encoded_jwt = jwt.encode(encode_data, key=KEY, algorithm=ALGORITHM)  
+    return encoded_jwt
+
+def verify_current_user(token: str = Depends(OAuthScheme), db: Session = Depends(get_db)):
+    authentication_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"}
+    )
+    try:
+        payload = jwt.decode(token, key=KEY, algorithms=[ALGORITHM])  # list
+        email: str = payload.get("sub")
+        if email is None:
+            raise authentication_exception
+        user = db.query(models.User).filter(models.User.email == email).first()
+        if user is None:
+            raise authentication_exception
+        return {"id":user.id, "email":user.email}
+    except JWTError:
+        raise authentication_exception
