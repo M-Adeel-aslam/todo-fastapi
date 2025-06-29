@@ -1,12 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app import models, schema
+import models, schema
 from datetime import datetime
-from app.auth import verify_current_user
-from app.database import get_db
+from auth import verify_current_user
+from database import get_db
 from sqlalchemy.orm import Session
 from typing import List
-
-
 
 route = APIRouter(
     prefix="/groups",

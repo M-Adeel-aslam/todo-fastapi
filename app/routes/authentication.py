@@ -1,10 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
-from .. import models, schema, database
+import models, schema
 from fastapi.security import OAuth2PasswordRequestForm
-from app.database import create_all_tables, get_db
+from database import create_all_tables, get_db
 from sqlalchemy.orm import Session
-from app.utils import verify_password, hassed_password
-from app.auth import create_access_token
+from utils import verify_password, hashed_password
+from auth import create_access_token
 
 create_all_tables()
 
@@ -19,7 +19,7 @@ async def register(user:schema.Usercreate, db:Session=Depends(get_db)):
     existing = db.query(models.User).filter(models.User.email== user.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="user email already exists!")
-    encrpyted_password = hassed_password(user.password)
+    encrpyted_password = hashed_password(user.password)
     newUser = models.User(
         username = user.username,
         email = user.email,

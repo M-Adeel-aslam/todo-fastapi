@@ -1,7 +1,10 @@
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
-.env
 venv/
+env/
 .idea/
-*.db
+.vscode/
+.env
+*.log
+.DS_Store
